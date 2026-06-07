@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Palimpsest Extract IR manifest",
+  "description": "Document-level manifest written by the Extract stage. Frozen contract between Extract (deterministic) and Translate (LLM). Translate refuses to run on a mismatched ir_version.",
+  "type": "object",
+  "required": ["ir_version", "doc_id", "source_sha256", "source_lang", "page_count", "dpi", "pages"],
+  "properties": {
+    "ir_version": {"type": "string", "description": "semver of the IR contract, e.g. 1.0.0"},
+    "doc_id": {"type": "string", "description": "project/document identifier, e.g. volvo-c303"},
+    "source_pdf": {"type": "string"},
+    "source_sha256": {"type": "string", "description": "hash of the source PDF; binds the IR to its input"},
+    "source_lang": {"type": "string"},
+    "page_count": {"type": "integer"},
+    "dpi": {"type": "number"},
+    "grid": {
+      "type": "object",
+      "required": ["cols", "rows"],
+      "properties": {"cols": {"type": "integer"}, "rows": {"type": "integer"}}
+    },
+    "extractor": {
+      "type": "object",
+      "description": "tool provenance for reproducibility",
+      "properties": {
+        "marker_version": {"type": ["string", "null"]},
+        "surya_version": {"type": ["string", "null"]},
+        "device": {"type": ["string", "null"], "description": "cpu | cuda | rocm"}
+      }
+    },
+    "created": {"type": ["string", "null"], "description": "ISO timestamp; stamped after the run"},
+    "pages": {
+      "type": "array",
+      "description": "per-page index into the IR",
+      "items": {
+        "type": "object",
+        "required": ["pdf_page", "page_json"],
+        "properties": {
+          "pdf_page": {"type": "integer"},
+          "page_json": {"type": "string", "description": "path to p-NNNN.page.json"},
+          "image": {"type": "string"},
+          "overlay": {"type": "string"}
+        }
+      }
+    }
+  }
+}

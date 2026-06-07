@@ -1,0 +1,29 @@
+{
+  "name": "volvo-c303",
+  "title": "Verkstadshandbok grundfordon — Terrängbil 11 och 13 (Volvo C303/C304)",
+  "source_pdf": "source/Grund.pdf",
+  "source_lang": "sv",
+  "target_langs": ["en"],
+  "enrich_langs": ["de", "es"],
+  "dpi": 200,
+  "grid": { "cols": 24, "rows": 34 },
+  "domain_context": "Swedish military vehicle workshop manual (Verkstadshandbok) for the Volvo C303/C304, designated Terrängbil 11 och 13 (Tgb 11/13) by the Swedish Armed Forces. Covers base-vehicle mechanical/hydraulic/electrical service and, in this section, the RBS 56 (BILL) anti-tank missile carrier variant. Translate to precise technical automotive/military English. Keep part numbers, tool numbers, and drawing references byte-identical. Translate 'Bild N' captions to 'Fig. N'.",
+  "glossary_seed": {
+    "Kolv": "piston",
+    "Ventil": "valve",
+    "Ventilhylsa": "valve sleeve",
+    "Propp": "plug",
+    "Hus": "housing",
+    "Fjäder": "spring",
+    "Bricka": "washer",
+    "Bussning": "bushing",
+    "Tätning": "seal",
+    "Dorn": "drift",
+    "Kugghjul": "gear",
+    "Bild": "Fig.",
+    "Del": "Part",
+    "Flik": "Tab",
+    "Sida": "Page"
+  },
+  "notes": "Source: scanned 200 DPI, no text layer, A4. Left/right pages alternate header-band layout; OCR misses left-page headers and diagram leader-labels (recovered by the translate pass)."
+}

@@ -1,0 +1,21 @@
+# Source documents & generated artifacts — NEVER commit (copyright + size)
+*.pdf
+projects/*/artifacts/
+projects/*/source/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Node
+node_modules/
+
+# OS / editor
+.DS_Store
+*.swp
+
+# Model caches if ever placed in-tree
+.cache/
+datalab/

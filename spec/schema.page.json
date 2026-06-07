@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "C303 page model",
+  "type": "object",
+  "required": ["page", "grid", "blocks"],
+  "properties": {
+    "page": {
+      "type": "object",
+      "required": ["pdf_page", "dpi", "page_w_pt", "page_h_pt", "px_w", "px_h"],
+      "properties": {
+        "pdf_page":  {"type": "integer", "description": "1-based page index in the source Grund.pdf"},
+        "slice_idx": {"type": "integer", "description": "1-based index within the POC slice render"},
+        "dpi":       {"type": "number"},
+        "page_w_pt": {"type": "number"},
+        "page_h_pt": {"type": "number"},
+        "px_w":      {"type": "integer"},
+        "px_h":      {"type": "integer"},
+        "header":    {
+          "type": "object",
+          "description": "parsed from the page header band; drives UID + TOC",
+          "properties": {
+            "del": {"type": ["string","null"]},
+            "flik": {"type": ["string","null"]},
+            "sida": {"type": ["string","null"]},
+            "authority": {"type": ["string","null"]},
+            "raw": {"type": ["string","null"]}
+          }
+        }
+      }
+    },
+    "grid": {
+      "type": "object",
+      "required": ["space", "cols", "rows", "cell_w_pt", "cell_h_pt", "origin"],
+      "properties": {
+        "space":     {"const": "pdf_pt"},
+        "cols":      {"type": "integer"},
+        "rows":      {"type": "integer"},
+        "cell_w_pt": {"type": "number"},
+        "cell_h_pt": {"type": "number"},
+        "origin":    {"const": "top-left"}
+      }
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["uid", "bbox_pt", "grid_ref", "class", "lang"],
+        "properties": {
+          "uid":     {"type": "string", "description": "stable: d<del>-f<flik>-s<sida>-b<NN> or pg<page>-b<NN>"},
+          "order":   {"type": "integer", "description": "reading order on page, 0-based"},
+          "bbox_pt": {
+            "type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4,
+            "description": "[x0,y0,x1,y1] native points, top-left origin"
+          },
+          "grid_ref": {
+            "type": "object", "required": ["c0","r0","c1","r1"],
+            "description": "inclusive cell rectangle derived from bbox_pt",
+            "properties": {
+              "c0": {"type": "integer"}, "r0": {"type": "integer"},
+              "c1": {"type": "integer"}, "r1": {"type": "integer"}
+            }
+          },
+          "class": {
+            "type": "string",
+            "enum": ["prose","heading","step","warning","caption","label",
+                     "part_number","identifier","header_band","table","other"]
+          },
+          "translate": {"type": "boolean", "description": "false for part_number/identifier/header_band"},
+          "lang": {
+            "type": "object",
+            "description": "XLIFF-like translation unit. sv is source; others are targets.",
+            "required": ["sv"],
+            "properties": {
+              "sv": {"type": "string"},
+              "en": {"type": "string"},
+              "de": {"type": "string"},
+              "es": {"type": "string"}
+            },
+            "additionalProperties": {"type": "string"}
+          },
+          "ocr_conf": {"type": ["number","null"]},
+          "notes":    {"type": ["string","null"], "description": "LLM remarks, e.g. leader-line anchor, ambiguity"}
+        }
+      }
+    }
+  }
+}

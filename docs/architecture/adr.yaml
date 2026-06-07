@@ -1,0 +1,51 @@
+# ADR Configuration
+# Defines domain numbering and validation rules.
+# Used by: docs/scripts/adr
+#
+# Customize domains for your project. Each domain reserves a number range.
+# New ADRs get the next available number in their domain.
+
+# Project name (used in generated index)
+project_name: Palimpsest
+
+# Domain Number Series
+domains:
+  core:
+    range: [100, 199]
+    name: Core
+    description: Engine architecture, data model, the Extract IR boundary, grid/coordinate model
+    folder: core
+
+  pipeline:
+    range: [200, 299]
+    name: Pipeline
+    description: Stage design — Extract, Translate, Compose, QA; reading order; glossary
+    folder: pipeline
+
+  tooling:
+    range: [300, 399]
+    name: Tooling
+    description: Skills, workflows, capability/preflight, environment setup, acceleration
+    folder: tooling
+
+# Valid ADR statuses
+statuses:
+  - Draft         # Initial creation, not yet proposed
+  - Proposed      # Under discussion/review
+  - Accepted      # Approved and ready for implementation
+  - Superseded    # Replaced by another ADR
+  - Deprecated    # No longer relevant
+
+# Default values for new ADRs
+defaults:
+  deciders: []    # Add GitHub usernames: [alice, bob]. Empty = auto-detect from gh/git
+  status: Draft
+
+# Legacy ADR range (pre-domain numbering)
+legacy:
+  range: [1, 99]
+  label: "Legacy"
+
+# Viewer command for `adr view` (use {file} as placeholder)
+# Options: cat {file}, glow {file}, bat {file}
+viewer: cat {file}
