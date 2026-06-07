@@ -16,11 +16,17 @@ export const meta = {
 //   glossary_path  path to a glossary json to reuse/extend        (optional)
 const A = args || {}
 const ROOT = A.root
-const PAGES = A.pages || []
+// pages: explicit token list, OR a range {first,last,pad} to generate them
+let PAGES = A.pages || []
+if (!PAGES.length && A.range) {
+  const pad = A.range.pad || 4
+  for (let i = A.range.first; i <= A.range.last; i++) PAGES.push(String(i).padStart(pad, '0'))
+}
 const SRC = A.source_lang || 'sv'
 const TGT = A.target_lang || 'en'
 const CTX = A.domain_context || ''
 const GLOSS = A.glossary_path || `${ROOT}/glossary.json`
+const MODEL = A.model  // undefined => inherit main-loop model; 'sonnet'|'haiku'|'opus' to pin
 if (!ROOT || !PAGES.length) throw new Error('doc-translate: args.root and args.pages are required')
 
 const TRANSLATE_SCHEMA = {
@@ -92,6 +98,7 @@ const results = await parallel(
       phase: 'Translate',
       schema: TRANSLATE_SCHEMA,
       agentType: 'general-purpose',
+      model: MODEL,
     })
   )
 )
@@ -110,7 +117,7 @@ ${JSON.stringify(fragments, null, 2)}
 
 Produce ONE canonical ${SRC}→${TGT} glossary: for each source term pick the single best target term, normalizing inconsistencies. Where pages disagreed, record a conflict {src, options:[...], chosen}.
 Return {canonical:{src:tgt,...}, conflicts:[...]}.`,
-  { label: 'reconcile-glossary', phase: 'Reconcile', schema: RECON_SCHEMA, agentType: 'general-purpose' }
+  { label: 'reconcile-glossary', phase: 'Reconcile', schema: RECON_SCHEMA, agentType: 'general-purpose', model: MODEL }
 )
 
 return {

@@ -111,10 +111,14 @@ def main():
 
     # 5) manifest (the IR contract header)
     mk_ver = sv_ver = None
+    marker_py = os.path.expanduser("~/.local/share/uv/tools/marker-pdf/bin/python")
     try:
-        import importlib.metadata as md
-        env = os.path.expanduser("~/.local/share/uv/tools/marker-pdf/lib/python3.12/site-packages")
-        # best-effort; versions read from marker's own env if present
+        r = subprocess.run(
+            [marker_py, "-c", "import importlib.metadata as m;"
+             "print(m.version('marker-pdf'));print(m.version('surya-ocr'))"],
+            capture_output=True, text=True, timeout=30)
+        if r.returncode == 0:
+            mk_ver, sv_ver = (r.stdout.split() + [None, None])[:2]
     except Exception:
         pass
     pages = []
