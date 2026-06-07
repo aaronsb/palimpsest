@@ -36,7 +36,11 @@ def probe(py, code):
 def main():
     pages = 1028
     if "--pages" in sys.argv:
-        pages = int(sys.argv[sys.argv.index("--pages") + 1])
+        try:
+            pages = int(sys.argv[sys.argv.index("--pages") + 1])
+        except (IndexError, ValueError):
+            print("usage: preflight.py [--pages N]   (N = integer page count)")
+            sys.exit(2)
 
     # system tools
     for tool in ("qpdf", "pdftoppm", "marker_single"):
