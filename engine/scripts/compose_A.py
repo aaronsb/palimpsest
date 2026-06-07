@@ -22,11 +22,13 @@ def fit_fontsize(page, rect, text, lo=4, hi=28):
     best = lo
     while lo <= hi:
         mid = (lo + hi) // 2
-        tmp = fitz.open(); tp = tmp.new_page(width=page.rect.width, height=page.rect.height)
+        tmp = fitz.open()
+        tp = tmp.new_page(width=page.rect.width, height=page.rect.height)
         rc = tp.insert_textbox(rect, text, fontsize=mid, render_mode=3, align=0)
         tmp.close()
         if rc >= 0:
-            best = mid; lo = mid + 1
+            best = mid
+            lo = mid + 1
         else:
             hi = mid - 1
     return best

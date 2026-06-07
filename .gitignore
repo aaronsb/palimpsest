@@ -19,3 +19,6 @@ node_modules/
 # Model caches if ever placed in-tree
 .cache/
 datalab/
+
+# local session tracking
+.claude/todo-*.md

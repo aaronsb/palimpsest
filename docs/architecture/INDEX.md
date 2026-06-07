@@ -29,3 +29,10 @@ _Stage design — Extract, Translate, Compose, QA; reading order; glossary_
 | ADR | Title | Status |
 |-----|-------|--------|
 | [ADR-200](./pipeline/ADR-200-two-compose-modes-searchable-layer-then-visual-reproduction.md) | Two compose modes — searchable layer, then visual reproduction | Accepted |
+
+## Tooling
+_Skills, workflows, capability/preflight, environment setup, acceleration_
+
+| ADR | Title | Status |
+|-----|-------|--------|
+| [ADR-300](./tooling/ADR-300-gpu-acceleration-via-rocm-torch-in-marker-venv.md) | GPU acceleration via ROCm torch in marker's venv | Accepted |

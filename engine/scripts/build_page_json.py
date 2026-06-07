@@ -82,9 +82,9 @@ def parse_header(text_blocks):
             raw)
 
 
-def build_page(page, pdf_page, slice_idx, dpi, png_path):
+def build_page(page, pdf_page, slice_idx, dpi, png_path, cols=None, rows=None):
     page_w, page_h = page["bbox"][2], page["bbox"][3]
-    grid = make_grid(page_w, page_h)
+    grid = make_grid(page_w, page_h, *( (cols, rows) if cols and rows else () ))
     px_w = px_h = None
     if png_path and os.path.exists(png_path):
         px_w, px_h = Image.open(png_path).size
@@ -125,23 +125,30 @@ def build_page(page, pdf_page, slice_idx, dpi, png_path):
     }
 
 
+def _opt(name, cast, default=None):
+    return cast(sys.argv[sys.argv.index(name) + 1]) if name in sys.argv else default
+
+
 def main():
     doc_json, out_dir = sys.argv[1], sys.argv[2]
-    first = int(sys.argv[sys.argv.index("--first-pdf-page") + 1])
-    dpi = int(sys.argv[sys.argv.index("--dpi") + 1]) if "--dpi" in sys.argv else 200
-    png_dir = sys.argv[sys.argv.index("--png-dir") + 1] if "--png-dir" in sys.argv else None
+    first = _opt("--first-pdf-page", int, 1)
+    dpi = _opt("--dpi", int, 200)
+    png_dir = _opt("--png-dir", str, None)
+    pad = _opt("--pad", int, 2)
+    cols = _opt("--cols", int, None)
+    rows = _opt("--rows", int, None)
     os.makedirs(out_dir, exist_ok=True)
     doc = json.load(open(doc_json))
 
     for idx, page in enumerate(doc["children"]):
         slice_idx = idx + 1
         pdf_page = first + idx
-        png = os.path.join(png_dir, f"p-{slice_idx:02d}.png") if png_dir else None
-        pj = build_page(page, pdf_page, slice_idx, dpi, png)
-        out = os.path.join(out_dir, f"p-{slice_idx:02d}.page.json")
+        png = os.path.join(png_dir, f"p-{slice_idx:0{pad}d}.png") if png_dir else None
+        pj = build_page(page, pdf_page, slice_idx, dpi, png, cols, rows)
+        out = os.path.join(out_dir, f"p-{slice_idx:0{pad}d}.page.json")
         json.dump(pj, open(out, "w"), ensure_ascii=False, indent=2)
         hdr = pj["page"]["header"]
-        print(f"p-{slice_idx:02d} (pdf {pdf_page}) "
+        print(f"p-{slice_idx:0{pad}d} (pdf {pdf_page}) "
               f"Del{hdr['del']}/Flik{hdr['flik']}/Sida{hdr['sida']} "
               f"{len(pj['blocks'])} blocks")
 
