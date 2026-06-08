@@ -30,38 +30,48 @@ end-to-end on a local GPU before any model is called.
 
 ## The flow
 
+Colour legend (consistent across every diagram below): **teal** = deterministic
+stage · **violet** = model (ML / LLM) inference · **amber** = the frozen Extract
+IR contract · **green** = data store / output artifact · **slate** = operator.
+
 ```mermaid
 flowchart TD
-    PDF[source scan no text layer] --> X
+    PDF[(source scan<br>no text layer)]:::store --> X
     subgraph X[EXTRACT — deterministic, GPU, no API tokens · extract.py]
-      R[1 render pdftoppm native DPI] --> IMG[(pages/p-NN.png upright)]
-      R --> M[2 OCR + geometry marker / Surya]
-      M --> MJ[(marker json boxes + sv text + order)]
-      MJ --> B[3 build page model build_page_json.py]
-      B --> PJ[(json/p-NN.page.json grid + bbox_pt + grid_ref + lang.sv)]
-      PJ --> D[4 in-figure detection detect_in_figures.py · ADR-201]
+      R[1 render<br>pdftoppm native DPI]:::proc --> IMG[(pages/p-NN.png<br>upright)]:::store
+      R --> M[2 OCR + geometry<br>marker / Surya]:::model
+      M --> MJ[(marker json<br>boxes + source text + order)]:::store
+      MJ --> B[3 build page model<br>build_page_json.py]:::proc
+      B --> PJ[(json/p-NN.page.json<br>grid + bbox_pt + grid_ref)]:::store
+      PJ --> D[4 in-figure detection<br>detect_in_figures.py · ADR-201]:::model
       IMG --> D
-      D --> PJD[(page.json + precise label boxes source=surya-figure)]
-      PJD --> O[5 overlay make_overlay.py]
+      D --> PJD[(page.json<br>+ precise label boxes)]:::store
+      PJD --> O[5 overlay<br>make_overlay.py]:::proc
       IMG --> O
-      O --> OV[(overlay/p-NN.grid.png)]
+      O --> OV[(overlay/p-NN.grid.png)]:::store
     end
-    X --> IR[(Extract IR = json/ + manifest.json · ADR-100 boundary)]
-    IR --> L[6 translate + classify LLM vision · doc-translate.wf.js]
-    GL[(glossary.en.json sv-en)] --> L
+    X --> IR[(Extract IR = json/ + manifest.json<br>ADR-100 boundary)]:::ir
+    IR --> L[6 translate + classify<br>LLM vision · doc-translate.wf.js]:::model
+    GL[(glossary<br>source-target terms)]:::store --> L
     L -. canonical terms .-> GL
-    L --> LLM[(llm/p-NN.llm.json class + lang.en)]
-    LLM --> AP[7 apply_translation.py merge into IR]
+    L --> LLM[(llm/p-NN.llm.json<br>class + target text)]:::store
+    LLM --> AP[7 apply_translation.py<br>merge into IR]:::proc
     IR --> AP
-    AP --> PJ2[(page.json + class + lang.en)]
-    PJ2 --> CB[8 compose Mode B-lite compose_review.py]
+    AP --> PJ2[(page.json<br>+ class + target text)]:::store
+    PJ2 --> CB[8 compose Mode B-lite<br>compose_review.py]:::proc
     IMG --> CB
-    CB --> OUTB[(readable translated pdf)]
-    PJ2 --> CA[8b compose Mode A compose_A.py]
+    CB --> OUTB[(readable<br>translated pdf)]:::store
+    PJ2 --> CA[8b compose Mode A<br>compose_A.py]:::proc
     PDF --> CA
-    CA --> OUTA[(searchable bilingual pdf)]
-    PJ2 --> QA[9 QA qa.py + cheap VLM]
-    QA --> REP[(issues report)]
+    CA --> OUTA[(searchable<br>bilingual pdf)]:::store
+    PJ2 --> QA[9 QA<br>qa.py + cheap VLM]:::proc
+    QA --> REP[(issues report)]:::store
+
+    classDef proc fill:#2d7d9a,color:#ffffff,stroke:#4a5568
+    classDef model fill:#7c3aed,color:#ffffff,stroke:#4a5568
+    classDef ir fill:#fbbf24,color:#1a1a1a,stroke:#d97706
+    classDef store fill:#2d8e5e,color:#ffffff,stroke:#4a5568
+    style X fill:#2d7d9a1a,stroke:#2d7d9a,color:#2d7d9a
 ```
 
 ## Stages
@@ -89,6 +99,8 @@ The same pipeline seen as an interaction over time — note the handoff at the
 Extract IR boundary, where the deterministic GPU phase ends and the model phase
 begins. The two halves run at different times and can be on different machines.
 
+Phase bands follow the legend: teal-tinted = deterministic, violet-tinted = model.
+
 ```mermaid
 sequenceDiagram
     actor U as Operator
@@ -98,9 +110,9 @@ sequenceDiagram
     participant M as LLM vision agents
     participant C as compositors + qa
 
-    rect rgb(235, 245, 255)
+    rect rgba(45, 125, 154, 0.12)
     note over U,G: EXTRACT — deterministic, GPU, no API tokens
-    U->>E: extract <project>
+    U->>E: extract(project)
     E->>G: render + OCR + layout
     G-->>E: marker JSON (boxes, source text, order)
     E->>E: build_page_json
@@ -112,18 +124,18 @@ sequenceDiagram
 
     note over U,M: ⟶ Extract IR boundary (ADR-100) ⟶
 
-    rect rgb(245, 240, 255)
+    rect rgba(124, 58, 237, 0.12)
     note over U,M: TRANSLATE — LLM, parallel, per page
     U->>W: doc-translate(range, glossary)
     loop each page (fan-out)
         W->>M: overlay + page.json + glossary
-        M-->>W: class + translation (lang.en)
+        M-->>W: class + translation (target text)
     end
     W->>W: reconcile canonical glossary terms
     W-->>U: llm/*.json
     end
 
-    rect rgb(235, 255, 240)
+    rect rgba(45, 125, 154, 0.12)
     note over U,C: COMPOSE + QA — deterministic
     U->>C: apply_translation → compose_review / compose_A → qa
     C-->>U: readable pdf + searchable pdf + issues report
@@ -159,10 +171,14 @@ and the compositor all agree without drift.
 
 ```mermaid
 flowchart LR
-    A[bbox in pixels marker @ 200dpi] -->|x 72/dpi| B[bbox_pt native points]
-    B -->|floor by cell size| C[grid_ref c0 r0 c1 r1]
-    B -->|fitz points = points| D[Mode A/B compositor]
-    B -->|x dpi/72| E[overlay png]
+    A[bbox in pixels<br>marker @ native dpi]:::store -->|x 72/dpi| B[bbox_pt<br>native points]:::ir
+    B -->|floor by cell size| C[grid_ref<br>c0 r0 c1 r1]:::store
+    B -->|fitz points = points| D[Mode A/B<br>compositor]:::proc
+    B -->|x dpi/72| E[overlay png]:::store
+
+    classDef proc fill:#2d7d9a,color:#ffffff,stroke:#4a5568
+    classDef ir fill:#fbbf24,color:#1a1a1a,stroke:#d97706
+    classDef store fill:#2d8e5e,color:#ffffff,stroke:#4a5568
 ```
 
 ## The data unit: one block
@@ -247,4 +263,11 @@ stateDiagram-v2
         model phase resumes from this on-disk
         contract — re-runnable, machine-portable
     end note
+
+    classDef proc fill:#2d7d9a,color:#ffffff,stroke:#4a5568
+    classDef model fill:#7c3aed,color:#ffffff,stroke:#4a5568
+    classDef ir fill:#fbbf24,color:#1a1a1a,stroke:#d97706
+    class Rendered,Built,Applied,Composed,Checked proc
+    class OCRed,Detected,Translated model
+    class IR ir
 ```
