@@ -49,14 +49,14 @@ echo -n "-- marker torch: "
 "$MARKER_PY" -c "import torch;print(torch.__version__,'gpu',torch.cuda.is_available())" 2>/dev/null \
   || { echo "ERROR: torch import failed in marker venv"; exit 1; }
 
-# 3) compositor venv (PyMuPDF + Pillow)
+# 3) compositor venv (PyMuPDF + Pillow + numpy)
 if [ ! -x "$REPO/engine/.venv/bin/python" ]; then
   echo "-- creating engine venv"
   uv venv "$REPO/engine/.venv" --python 3.12 || { echo "ERROR: engine venv create failed"; exit 1; }
 fi
-uv pip install --python "$REPO/engine/.venv/bin/python" pymupdf pillow >/dev/null \
-  || { echo "ERROR: pymupdf/pillow install failed"; exit 1; }
+uv pip install --python "$REPO/engine/.venv/bin/python" pymupdf pillow numpy >/dev/null \
+  || { echo "ERROR: pymupdf/pillow/numpy install failed"; exit 1; }
 echo -n "-- engine venv: "
-"$REPO/engine/.venv/bin/python" -c "import fitz,PIL;print('ok')"
+"$REPO/engine/.venv/bin/python" -c "import fitz,PIL,numpy;print('ok')"
 
 echo "== done. Verify: python3 engine/scripts/preflight.py"
