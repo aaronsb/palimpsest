@@ -31,6 +31,7 @@ _Stage design — Extract, Translate, Compose, QA; reading order; glossary_
 | [ADR-200](./pipeline/ADR-200-two-compose-modes-searchable-layer-then-visual-reproduction.md) | Two compose modes — searchable layer, then visual reproduction | Accepted |
 | [ADR-201](./pipeline/ADR-201-in-figure-text-detection-for-precise-label-geometry.md) | In-figure text detection for precise label geometry | Accepted |
 | [ADR-202](./pipeline/ADR-202-masking-and-trapping-strategy-for-translated-text-overlay.md) | Masking and trapping strategy for translated-text overlay | Proposed |
+| [ADR-203](./pipeline/ADR-203-interactive-per-page-repair-stage-for-last-mile-corrections.md) | Interactive per-page repair stage for last-mile corrections | Accepted |
 
 ## Tooling
 _Skills, workflows, capability/preflight, environment setup, acceleration_
