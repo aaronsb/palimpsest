@@ -31,6 +31,17 @@ BLACK = (0, 0, 0)
 INK_THRESH = 110   # grayscale < this = ink (dark on white scan)
 MIN_DARK = 3       # >= this many ink px in a line => "has ink" (ignores speckle)
 BODY_CLASSES = {"prose", "step"}  # share one font size per page for consistency
+FIG_TYPES = {"Picture", "Figure"}  # marker layout types whose interior is artwork
+
+
+def overlap_frac(rect, fr):
+    """Fraction of `rect` covered by `fr` (both fitz.Rect)."""
+    ix, iy = max(rect.x0, fr.x0), max(rect.y0, fr.y0)
+    ax, ay = min(rect.x1, fr.x1), min(rect.y1, fr.y1)
+    if ax <= ix or ay <= iy:
+        return 0.0
+    a = rect.get_area()
+    return ((ax - ix) * (ay - iy) / a) if a else 0.0
 
 
 def fit_fontsize(rect, text, lo=4, hi=20):
@@ -112,6 +123,15 @@ def main():
             if auto:
                 ink = np.asarray(Image.open(png).convert("L")) < INK_THRESH
 
+        # figure regions: a block whose text sits ON artwork must NOT auto-trap
+        # (there is no whitespace line to stop the grow, so it eats the diagram).
+        fig_rects = [fitz.Rect(*b["bbox_pt"]) for b in pj["blocks"] if b.get("marker_type") in FIG_TYPES]
+
+        def on_figure(rect, b):
+            if b.get("source") == "surya-figure" or b.get("class") == "label":
+                return True
+            return any(overlap_frac(rect, fr) > 0.35 for fr in fig_rects)
+
         # gather renderable blocks in reading order
         items = []
         for b in sorted(pj["blocks"], key=lambda x: x.get("order", 0)):
@@ -133,8 +153,14 @@ def main():
 
         for k, (b, txt, rect) in enumerate(items):
             cls = b.get("class")
-            mask = auto_trap(rect, ink, dpi, trap_cap) if (auto and ink is not None) \
-                else fixed_trap(rect, trap_x, trap_y)
+            # On artwork: hug the glyphs with a tight fixed pad (auto-trap would
+            # grow to the cap and white out the diagram). Elsewhere: content-aware.
+            if on_figure(rect, b):
+                mask = fixed_trap(rect, 1.0, 1.0)
+            elif auto and ink is not None:
+                mask = auto_trap(rect, ink, dpi, trap_cap)
+            else:
+                mask = fixed_trap(rect, trap_x, trap_y)
 
             if cls == "label":
                 # single line centred on the box; mask must also cover the English pill
