@@ -30,6 +30,7 @@ WHITE = (1, 1, 1)
 BLACK = (0, 0, 0)
 INK_THRESH = 110   # grayscale < this = ink (dark on white scan)
 MIN_DARK = 3       # >= this many ink px in a line => "has ink" (ignores speckle)
+BODY_CLASSES = {"prose", "step"}  # share one font size per page for consistency
 
 
 def fit_fontsize(rect, text, lo=4, hi=20):
@@ -111,6 +112,8 @@ def main():
             if auto:
                 ink = np.asarray(Image.open(png).convert("L")) < INK_THRESH
 
+        # gather renderable blocks in reading order
+        items = []
         for b in sorted(pj["blocks"], key=lambda x: x.get("order", 0)):
             if not b.get("translate", True):
                 continue
@@ -120,10 +123,20 @@ def main():
             rect = fitz.Rect(*b["bbox_pt"])
             if rect.is_empty or rect.width < 3 or rect.height < 3:
                 continue
+            items.append((b, txt, rect))
+
+        # ONE uniform body font per page: prose + numbered steps share a size so
+        # they don't jump line-to-line (use the median of what each box can take).
+        body_fits = sorted(fit_fontsize(r, t) for b, t, r in items if b.get("class") in BODY_CLASSES)
+        body_fs = body_fits[len(body_fits) // 2] if body_fits else 9.0
+        body_fs = max(6.5, min(11.0, body_fs))
+
+        for k, (b, txt, rect) in enumerate(items):
+            cls = b.get("class")
             mask = auto_trap(rect, ink, dpi, trap_cap) if (auto and ink is not None) \
                 else fixed_trap(rect, trap_x, trap_y)
 
-            if b.get("class") == "label":
+            if cls == "label":
                 # single line centred on the box; mask must also cover the English pill
                 fs = max(6.0, min(10.0, rect.height * 0.85))
                 tw = fitz.get_text_length(txt, fontname="helv", fontsize=fs)
@@ -132,9 +145,25 @@ def main():
                 mask = mask | fitz.Rect(x0 - 1, y0 - 1, x0 + tw + 1, y0 + fs + 1)
                 page.draw_rect(mask, color=None, fill=WHITE, fill_opacity=1.0)
                 page.insert_text((x0, y0 + fs * 0.82), txt, fontsize=fs, color=BLACK)
-            else:
-                page.draw_rect(mask, color=None, fill=WHITE, fill_opacity=1.0)
-                page.insert_textbox(rect, txt, fontsize=fit_fontsize(rect, txt), color=BLACK, align=0)
+                drawn += 1
+                continue
+
+            # let text grow DOWN into the gap before the next block (so a uniform
+            # font isn't forced to shrink to a tight box); headings also grow RIGHT
+            # since their box is sized to the shorter source word.
+            nxt_top = items[k + 1][2].y0 if k + 1 < len(items) else rect.y1 + 6
+            bottom = max(rect.y1, min(nxt_top - 1, rect.y1 + 60))
+            if cls == "heading":
+                rrect = fitz.Rect(rect.x0, rect.y0, min(w - 36, rect.x1 + 220), bottom)
+                fs, font = max(10.5, body_fs), "hebo"
+            elif cls == "caption":
+                rrect = fitz.Rect(rect.x0, rect.y0, rect.x1, bottom)
+                fs, font = 8.0, "helv"
+            else:  # prose / step / table / other -> uniform body size
+                rrect = fitz.Rect(rect.x0, rect.y0, rect.x1, bottom)
+                fs, font = body_fs, "helv"
+            page.draw_rect(mask, color=None, fill=WHITE, fill_opacity=1.0)
+            page.insert_textbox(rrect, txt, fontsize=fs, fontname=font, color=BLACK, align=0)
             drawn += 1
 
     doc.set_metadata({"title": "Palimpsest review proof",
