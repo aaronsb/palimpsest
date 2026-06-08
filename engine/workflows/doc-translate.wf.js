@@ -80,8 +80,8 @@ Grid: columns numbered along the top, rows down the left. Each box is labeled wi
 - translate: false for header_band/part_number/identifier; true otherwise.
 - ${TGT}: the translation. For translate=false, COPY the source verbatim into the ${TGT} field (never leave it empty). Preserve ALL digits exactly.
 
-## Recover text the OCR MISSED
-Diagram leader-labels and (on some pages) the header band are often absent from the source blocks. Read each off the painted grid and emit a \`recovered\` entry: {grid_ref:{c0,r0,c1,r1}, class, ${SRC}, ${TGT}}.
+## Text is already detected — do NOT re-recover it
+In-figure labels are PRE-DETECTED and already present as source blocks (boxed on the overlay) — translate+classify them like any other block. Do NOT add them again as \`recovered\`. Only use \`recovered\` for text that is plainly visible on the page yet has NO box at all (e.g. a missed header band): {grid_ref:{c0,r0,c1,r1}, class, ${SRC}, ${TGT}}. Prefer an empty recovered list.
 
 ## Write the result file (this is the real output)
 Write ONLY this JSON to ${ROOT}/llm/p-${n}.llm.json :
