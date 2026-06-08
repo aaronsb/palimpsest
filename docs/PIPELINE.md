@@ -84,14 +84,20 @@ flowchart TD
 | 4 | **In-figure detection** | `detect_in_figures.py` (Surya) | ML (GPU) | figure crops → precise label boxes appended (`source: surya-figure`, `class: label`) — ADR-201 |
 | 5 | Overlay | `make_overlay.py` | deterministic | page.json + png → `overlay/p-NN.grid.png` (grid + numbered boxes) |
 | — | **Extract IR boundary** | — | contract | `json/` + `manifest.json`, schema-validated — ADR-100 |
-| 6 | **Translate + classify** | `doc-translate.wf.js` (LLM vision) | model | overlay + page.json + glossary → `llm/p-NN.llm.json` (`class`, `translate`, `lang.en`) |
+| 5b| Translate-view (slim input) | `translate_view.py` | deterministic | page.json → `trans/p-NN.page.json` (`{uid, order, class, src}` only — drops geometry so many pages fit one agent) |
+| 6 | **Translate + classify** | `doc-translate.wf.js` (LLM vision, batched fan-out) | model | overlay + slim view + glossary → `llm/p-NN.llm.json` (`class`, `translate`, `lang.en`) |
 | 7 | Apply translation | `apply_translation.py` | deterministic | llm.json → merged back into `json/p-NN.page.json` |
 | 8 | Compose Mode B-lite | `compose_review.py` (PyMuPDF) | deterministic | upright png + page.json → readable translated PDF (white-out + render in place) |
 | 8b| Compose Mode A | `compose_A.py` (PyMuPDF) | deterministic | scan + page.json → searchable PDF (invisible text layer) |
 | 9 | QA | `qa.py` + cheap VLM | deterministic + model | page.json + output → issues report |
+| 10| Interactive repair *(optional)* | conversational, per-page | human + deterministic | redlined pages → surgical IR edit + recompose just that page — ADR-203 |
 
 Stages 1–5 are driven end-to-end by `engine/scripts/extract.py`. Stage 6 is a
-Claude Code Workflow (parallel vision agents, one per page, + glossary reconcile).
+Claude Code Workflow: it reads the slim translate-view (5b) so each agent can
+handle a small **batch** of pages — the loop lives in the workflow's fan-out, not
+inside one over-stuffed agent — then reconciles a canonical glossary. Stage 10
+(ADR-203) is the human counterpart: not a workflow, but a per-page conversational
+repair of whatever the reviewer redlines.
 
 ### Who calls what, in order
 
