@@ -29,6 +29,7 @@ _Stage design — Extract, Translate, Compose, QA; reading order; glossary_
 | ADR | Title | Status |
 |-----|-------|--------|
 | [ADR-200](./pipeline/ADR-200-two-compose-modes-searchable-layer-then-visual-reproduction.md) | Two compose modes — searchable layer, then visual reproduction | Accepted |
+| [ADR-201](./pipeline/ADR-201-in-figure-text-detection-for-precise-label-geometry.md) | In-figure text detection for precise label geometry | Accepted |
 
 ## Tooling
 _Skills, workflows, capability/preflight, environment setup, acceleration_

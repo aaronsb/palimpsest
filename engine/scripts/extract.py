@@ -99,6 +99,16 @@ def main():
         cmd += ["--cols", str(cols), "--rows", str(rows)]
     sh(cmd)
 
+    # 3b) in-figure text detection — precise label boxes from OCR (ADR-201).
+    # Runs in the marker venv (surya). Appends source='surya-figure' blocks
+    # BEFORE overlays so the LLM sees them on the gridded image.
+    if not skip_marker:
+        marker_py = os.path.expanduser("~/.local/share/uv/tools/marker-pdf/bin/python")
+        try:
+            sh([marker_py, os.path.join(HERE, "detect_in_figures.py"), json_dir, pages_dir])
+        except subprocess.CalledProcessError as e:
+            print(f"WARN: in-figure detection failed, continuing without it: {e}")
+
     # 4) overlays
     pjs = sorted(glob.glob(os.path.join(json_dir, "p-*.page.json")))
     for pj in pjs:
