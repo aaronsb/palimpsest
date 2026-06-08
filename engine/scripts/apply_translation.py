@@ -27,7 +27,9 @@ def main():
     page_f, llm_f = sys.argv[1], sys.argv[2]
     out_f = sys.argv[3] if len(sys.argv) > 3 else page_f
     pj = json.load(open(page_f))
-    llm = json.load(open(llm_f))
+    # strict=False tolerates raw control chars (e.g. a literal newline a model
+    # left inside a translated string) instead of aborting the whole page.
+    llm = json.load(open(llm_f), strict=False)
     grid = pj["grid"]
 
     upd = {b["uid"]: b for b in llm.get("blocks", [])}
