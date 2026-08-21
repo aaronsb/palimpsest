@@ -7,7 +7,7 @@ export const meta = {
   ],
 }
 
-// args (passed by the run skill, derived from projects/<name>/config.json):
+// args (passed by the run skill, derived from the project's config.json):
 //   root           artifacts dir holding overlay/, json/, llm/   (required)
 //   pages          array of page tokens matching p-<token>.png    (required)
 //   source_lang    e.g. "sv"                                      (required)

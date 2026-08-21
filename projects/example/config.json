@@ -1,0 +1,17 @@
+{
+  "name": "example",
+  "title": "Example document — replace with your own",
+  "source_pdf": "source/example.pdf",
+  "source_lang": "sv",
+  "target_langs": ["en"],
+  "enrich_langs": [],
+  "dpi": 200,
+  "grid": { "cols": 24, "rows": 34 },
+  "domain_context": "One paragraph telling the translator what this document is, who wrote it, and what conventions to hold: which terms stay verbatim (part numbers, tool numbers, drawing references), how captions are labelled, and the register to translate into.",
+  "glossary_seed": {
+    "Bild": "Fig.",
+    "Del": "Part",
+    "Sida": "Page"
+  },
+  "notes": "Config-only example: no source/ or artifacts/ ship with the repo. Copy this directory anywhere outside the repo, drop your PDF in source/, and point the pipeline at that path."
+}

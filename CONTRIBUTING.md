@@ -7,7 +7,7 @@ multilingual PDFs.
 ## Ground rules
 
 - **Never commit source documents or generated artifacts.** They are gitignored
-  (`*.pdf`, `projects/*/source/`, `projects/*/artifacts/`). The engine is the
+  (`*.pdf`, `projects/*/source/`, `projects/*/artifacts/`) — and real projects live outside the repo entirely. The engine is the
   product; documents are inputs.
 - **The engine is document-agnostic.** Anything document-specific (languages,
   domain context, glossary seeds) belongs in a project's `config.json`, not in

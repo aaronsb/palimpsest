@@ -34,9 +34,15 @@ engine/          # document-agnostic engine
 spec/            # schema.page.json, schema.manifest.json — the Extract IR contract
 docs/            # PIPELINE.md + architecture/ (ADRs)
 .claude/         # skills (preflight, setup, run) + workflows
-projects/<name>/ # per-document: config.json (langs, domain context, glossary seed)
-  source/        # the input PDF        (gitignored)
-  artifacts/     # all generated output (gitignored)
+projects/example/ # config-only template — copy it, do not fill it in here
+```
+
+A **project** is a directory holding `config.json` (langs, domain context, glossary
+seed), `source/` (the input PDF) and `artifacts/` (all generated output). Projects live
+outside this repo — the engine takes a project path as its argument:
+
+```bash
+engine/.venv/bin/python engine/scripts/extract.py ~/Palimpsest/my-doc
 ```
 
 Source documents and artifacts are **never committed** — the engine is the product, documents are inputs.

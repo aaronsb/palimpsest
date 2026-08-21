@@ -1,15 +1,20 @@
 ---
 name: doc-run
-description: Drive a Palimpsest project end-to-end — Extract (PDF→IR) → Translate (LLM workflow + glossary reconcile) → Compose (searchable + readable PDFs) → QA. Use to run the pipeline for a project in projects/<name>, or to run an individual stage. Knows the page-token convention, glossary write-back, and that a full-book translate is a large, billable fan-out to confirm and chunk.
+description: Drive a Palimpsest project end-to-end — Extract (PDF→IR) → Translate (LLM workflow + glossary reconcile) → Compose (searchable + readable PDFs) → QA. Use to run the pipeline for a project directory (anywhere on disk), or to run an individual stage. Knows the page-token convention, glossary write-back, and that a full-book translate is a large, billable fan-out to confirm and chunk.
 ---
 
 # doc-run
 
-Drives `projects/<name>` through the four stages. `engine/.venv/bin/python` runs the
-Python steps; `marker_single` (its own ROCm venv) does OCR inside Extract. Always
+Drives a **project directory** through the four stages. `engine/.venv/bin/python` runs
+the Python steps; `marker_single` (its own ROCm venv) does OCR inside Extract. Always
 `doc-preflight` first.
 
-Let `P=projects/<name>`, `A=$P/artifacts`. Read langs/context/grid from `$P/config.json`.
+A project is a directory holding `config.json`, `source/`, and `artifacts/`. It lives
+wherever the user keeps documents — outside this repo. `projects/example/` here is a
+config-only template, not a place to put real documents.
+
+Let `P=<absolute path to the project>`, `A=$P/artifacts`. Read langs/context/grid from
+`$P/config.json`. Ask the user for `P` if it is not already established.
 
 ## 1. Extract  (deterministic, GPU — run once)
 
